@@ -2,23 +2,21 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
 var client = http.Client{
-	Timeout: time.Second * 10,
+	Timeout: time.Second * 5,
 }
 
-var curentCounter *WriteCounter
-
-var fn func(p float64)
+var (
+	ProgressChangeCallback func(float64)
+)
 
 type WriteCounter struct {
 	Total float64
@@ -28,12 +26,8 @@ type WriteCounter struct {
 func (wc *WriteCounter) Write(p []byte) (int, error) {
 	n := len(p)
 	wc.Total += float64(n)
-	fn(float64(wc.Total/wc.Max) * 100)
+	ProgressChangeCallback(float64(wc.Total/wc.Max) * 100)
 	return n, nil
-}
-
-func SetOnPrecChange(f func(p float64)) {
-	fn = f
 }
 
 func GetStringAsJson(url string, target interface{}) error {
@@ -49,16 +43,12 @@ func GetStringAsJson(url string, target interface{}) error {
 }
 
 func GetStringFromWeb(url string) (string, error) {
-	req, err := http.NewRequest("GET", url, strings.NewReader(""))
+	res, err := http.Get(url)
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("User-Agent", fmt.Sprintf("SkyVillage Kliens %s", LauncherVersion))
+	defer res.Body.Close()
 
-	res, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
 	raw, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return "", err
@@ -66,17 +56,21 @@ func GetStringFromWeb(url string) (string, error) {
 	return string(raw), nil
 }
 
-func StartDownloadJob(url, path string) error {
+func StartDownloadJob(url, path string, setProgress bool) error {
 	if !FileExists(filepath.Dir(path)) {
 		err := os.MkdirAll(filepath.Dir(path), 0777)
 		if err != nil {
 			return err
 		}
 	}
+	if setProgress {
+		ProgressChangeCallback(0)
+	}
 	out, err := os.Create(path + ".tmp")
 	if err != nil {
 		return err
 	}
+	defer out.Close()
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -88,20 +82,18 @@ func StartDownloadJob(url, path string) error {
 	}
 	defer resp.Body.Close()
 
-	counter := &WriteCounter{}
-	counter.Max = float64(resp.ContentLength)
+	if setProgress {
+		counter := &WriteCounter{}
+		counter.Max = float64(resp.ContentLength)
 
-	if _, err = io.Copy(out, io.TeeReader(resp.Body, counter)); err != nil {
-		err := out.Close()
-		if err != nil {
+		if _, err = io.Copy(out, io.TeeReader(resp.Body, counter)); err != nil {
 			return err
 		}
-		return err
-	}
+	} else {
 
-	err = out.Close()
-	if err != nil {
-		return err
+		if _, err = io.Copy(out, resp.Body); err != nil {
+			return err
+		}
 	}
 
 	if err = os.Rename(path+".tmp", path); err != nil {

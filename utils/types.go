@@ -8,19 +8,18 @@ import (
 )
 
 type VersionManifest struct {
-	Id            string     `json:"id,omitempty"`
-	ReleaseType   string     `json:"type,omitempty"`
-	Libraries     []Library  `json:"libraries,omitempty"`
-	MainClass     string     `json:"mainClass,omitempty"`
-	AssetsVersion string     `json:"assets,omitempty"`
-	Client        Download   `json:"client"`
-	Assets        AssetIndex `json:"assetIndex"`
+	Id          string     `json:"id,omitempty"`
+	ReleaseType string     `json:"type,omitempty"`
+	Libraries   []Library  `json:"libraries,omitempty"`
+	MainClass   string     `json:"mainClass,omitempty"`
+	Client      Download   `json:"client"`
+	Assets      AssetIndex `json:"assetIndex"`
 }
 
 type Library struct {
 	Name      string              `json:"name,omitempty"`
-	OnlyIn    []string            `json:"onlyIn,omitempty"`
-	Natives   map[string]string   `json:"natives,omitempty"`
+	IsNative  bool                `json:"isNative"`
+	Os        string              `json:"os"`
 	Downloads map[string]Download `json:"downloads,omitempty"`
 }
 
@@ -28,6 +27,7 @@ type Download struct {
 	Url  string `json:"url,omitempty"`
 	Hash string `json:"sha1,omitempty"`
 	Size int32  `json:"size,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 type AssetIndex struct {
@@ -44,7 +44,7 @@ type Assets struct {
 
 type Mod struct {
 	Name     string `json:"name,omitempty"`
-	FileName string `json:"fileName,omitempty"`
+	FileName string `json:"file_name,omitempty"`
 	Url      string `json:"url,omitempty"`
 	Hash     string `json:"sha1,omitempty"`
 }

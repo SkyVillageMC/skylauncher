@@ -1,35 +1,32 @@
 package main
 
 import (
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/dialog"
 	"log"
-	"skyvillage-launcher-rewrite/settings"
-	"skyvillage-launcher-rewrite/updater"
 	"skyvillage-launcher-rewrite/utils"
-	"skyvillage-launcher-rewrite/views"
+
+	"fyne.io/fyne/v2/app"
 )
 
 func main() {
-	log.SetPrefix("SKYVILLAGE|> ")
-	log.Printf("Starting launcher version %s by %s\n", utils.LauncherVersion, utils.Author)
-	a := app.NewWithID("hu.skyvillage.launcher")
+	log.Printf("Starting launcher version %s.\n", utils.LauncherVersion)
+	svApp = app.NewWithID("hu.skyvillage.launcher")
 
 	utils.GameDir = utils.GetGameDir()
 
-	settings.LoadSettings()
+	LoadSettings()
 
-	views.SetOnLogin(func() {
+	InitView()
+
+	/* views.SetOnLogin(func() {
 		err := updater.CheckForUpdates()
 		if err != nil {
 			dialog.ShowError(err, views.MainWindow)
 		}
-	})
+	}) */
 
-	views.InitMainWindow(a, func() {
+	/* views.InitMainWindow(a, func() {
 		log.Println("Closing...")
-		settings.Save()
+		SaveSettings()
 	}, func() {
 		if updater.CheckForLauncherUpdates() {
 			err := updater.UpdateLauncher()
@@ -41,5 +38,5 @@ func main() {
 		}
 
 	})
-	defer views.CloseMainWindow()
+	defer views.CloseMainWindow() */
 }

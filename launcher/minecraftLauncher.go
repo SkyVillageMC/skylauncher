@@ -2,7 +2,6 @@ package launcher
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -22,12 +21,12 @@ func LaunchGame(username, uuid, sessionId string) error {
 	runtime.GC()
 	cmd := exec.Command("java", GetArgs(username, uuid, sessionId)...)
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = utils.GameDir
 
 	version = *new(utils.VersionManifest)
 	err := cmd.Run()
 	if err != nil {
-		log.Println(err.Error())
 		return err
 	}
 	return nil
@@ -44,7 +43,7 @@ func GetArgs(username, uuid, sessionId string) []string {
 		"--assetsDir",
 		path.Join(utils.GameDir, "assets"),
 		"--assetIndex",
-		version.AssetsVersion,
+		version.Assets.Id,
 		"--uuid",
 		uuid,
 		"--accessToken",
@@ -67,7 +66,7 @@ func getCp() string {
 		cp = "\""
 	}
 	for _, lib := range version.Libraries {
-		if utils.IsLibraryCompatible(lib.OnlyIn) {
+		if utils.IsLibraryCompatible(lib.Os) {
 			if os == "linux" {
 				cp = fmt.Sprintf("%s%s:", cp, utils.GetLibraryPath(lib.Name))
 			} else {

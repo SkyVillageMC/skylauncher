@@ -2,18 +2,19 @@ package utils
 
 import (
 	"fmt"
-	"fyne.io/fyne/v2"
 	"log"
 	"os"
 	"path"
 	"runtime"
+
+	"fyne.io/fyne/v2"
 )
 
 var (
 	LauncherVersion = "v0.0.1-pre"
 	Author          = "Bendi"
-	BaseUrl         = "https://bendimester23.tk/assets"
-	ManifestUrl     = fmt.Sprintf("%s/1.14.4.json", BaseUrl)
+	BaseUrl         = "https://bendi.tk/assets"
+	ManifestUrl     = fmt.Sprintf("%s/version.json", BaseUrl)
 	GameDir         = GetGameDir()
 )
 
@@ -36,28 +37,22 @@ func GetGameDir() string {
 func internalUpperOs() string {
 	switch runtime.GOOS {
 	case "windows":
-		return "WIN"
+		return "windows"
 
 	case "darwin":
-		return "OSX"
+		return "osx"
 
 	case "linux":
-		return "LINUX"
+		return "linux"
 	}
 	return "not supported"
 }
 
-func IsLibraryCompatible(onlyIn []string) bool {
-	if len(onlyIn) == 0 {
+func IsLibraryCompatible(onlyIn string) bool {
+	if onlyIn == "all" || onlyIn == "" {
 		return true
 	}
-	for i := range onlyIn {
-		if internalUpperOs() == onlyIn[i] {
-			return true
-		}
-	}
-
-	return false
+	return internalUpperOs() == onlyIn
 }
 
 func GetNativesName() string {
